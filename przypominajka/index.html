@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Przypominajka</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div>
+        <p class="date" id="today-label"></p>
+        <h1>Przypominajka</h1>
+      </div>
+      <button class="icon-btn" id="settings-btn" aria-label="Ustawienia">⚙️</button>
+    </header>
+
+    <section class="banner" id="notif-banner" hidden>
+      <div>
+        <strong>Włącz powiadomienia</strong>
+        <p>Bez tego apka nie będzie mogła Ci przypominać.</p>
+      </div>
+      <button class="btn primary" id="notif-enable">Włącz</button>
+    </section>
+
+    <section class="summary" id="summary"></section>
+
+    <section class="list" id="list"></section>
+
+    <button class="fab" id="add-btn" aria-label="Dodaj przypomnienie">＋</button>
+  </main>
+
+  <!-- Edit reminder -->
+  <dialog class="sheet" id="edit-dialog">
+    <form method="dialog" id="edit-form">
+      <header class="sheet-head">
+        <h2 id="edit-title">Nowe przypomnienie</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij">✕</button>
+      </header>
+
+      <div class="row">
+        <label class="field emoji-field">
+          <span>Ikona</span>
+          <input name="emoji" maxlength="4" required>
+        </label>
+        <label class="field grow">
+          <span>Nazwa</span>
+          <input name="name" placeholder="np. Woda" required>
+        </label>
+      </div>
+
+      <div class="field">
+        <span>Kolor</span>
+        <div class="swatches" id="swatches"></div>
+      </div>
+
+      <div class="field">
+        <span>Kiedy przypominać</span>
+        <div class="segmented">
+          <label><input type="radio" name="mode" value="interval"><span>Co X minut</span></label>
+          <label><input type="radio" name="mode" value="times"><span>O godzinach</span></label>
+        </div>
+      </div>
+
+      <div class="mode-interval">
+        <div class="row">
+          <label class="field grow">
+            <span>Co ile minut</span>
+            <input name="interval" type="number" min="5" step="5" inputmode="numeric">
+          </label>
+          <label class="field grow">
+            <span>Od</span>
+            <input name="start" type="time">
+          </label>
+          <label class="field grow">
+            <span>Do</span>
+            <input name="end" type="time">
+          </label>
+        </div>
+      </div>
+
+      <div class="mode-times">
+        <div class="field">
+          <span>Godziny</span>
+          <div class="times" id="times"></div>
+          <button type="button" class="btn ghost small" id="add-time">＋ dodaj godzinę</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span>Dni tygodnia</span>
+        <div class="days" id="days"></div>
+      </div>
+
+      <div class="row">
+        <label class="field grow">
+          <span>Cel dzienny</span>
+          <input name="goal" type="number" min="1" inputmode="numeric" placeholder="np. 8">
+        </label>
+        <label class="field grow">
+          <span>Jednostka</span>
+          <input name="unit" placeholder="np. szklanka">
+        </label>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" name="stopAtGoal">
+        <span>Nie przypominaj po osiągnięciu celu</span>
+      </label>
+
+      <label class="field">
+        <span>Treść powiadomienia</span>
+        <input name="message" placeholder="np. Napij się wody 💧">
+      </label>
+
+      <footer class="sheet-foot">
+        <button type="button" class="btn danger ghost" id="delete-btn">Usuń</button>
+        <button type="submit" class="btn primary">Zapisz</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Settings -->
+  <dialog class="sheet" id="settings-dialog">
+    <div>
+      <header class="sheet-head">
+        <h2>Ustawienia</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Zamknij">✕</button>
+      </header>
+
+      <div class="settings-group">
+        <h3>Powiadomienia</h3>
+        <p class="muted" id="notif-status"></p>
+        <button class="btn" id="test-notif">Wyślij testowe powiadomienie</button>
+        <label class="check">
+          <input type="checkbox" id="sound-toggle">
+          <span>Dźwięk w apce, gdy jest otwarta</span>
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <h3>Gdy apka jest zamknięta</h3>
+        <p class="muted">Przeglądarka nie budzi zamkniętej strony. Żeby dostawać przypomnienia zawsze, wyeksportuj je do kalendarza w telefonie. Kalendarz zadzwoni nawet przy zamkniętej apce.</p>
+        <button class="btn" id="export-ics">Eksportuj do kalendarza (.ics)</button>
+      </div>
+
+      <div class="settings-group">
+        <h3>Kopia zapasowa</h3>
+        <div class="row">
+          <button class="btn grow" id="export-json">Eksportuj</button>
+          <label class="btn grow">Importuj<input type="file" id="import-json" accept="application/json" hidden></label>
+        </div>
+        <button class="btn danger ghost" id="reset-today">Wyzeruj dzisiejszy postęp</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

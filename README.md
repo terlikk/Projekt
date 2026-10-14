@@ -41,6 +41,7 @@ Nie wysyłaj losowych wartości do charakterystyk zapisu. Przed publikacją log�
 
 ## Zawartość
 
+- [`przypominajka/`](przypominajka/) — osobna mini-apka (PWA) z przypomnieniami o wodzie, kreatynie i suplementach. Zobacz [README apki](przypominajka/README.md).
 - [`docs/hoto-h-d50-ble-rozpoznanie.md`](docs/hoto-h-d50-ble-rozpoznanie.md) — kroki badania, przykłady analizy i szablon wyników.
 
 ## English
