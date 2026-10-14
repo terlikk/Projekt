@@ -23,9 +23,9 @@ python3 -m http.server 8000
 
 Powiadomienia i service worker wymagają HTTPS, więc apka musi być wystawiona w sieci. Najprościej przez GitHub Pages:
 
-1. Repo → **Settings → Pages → Source: GitHub Actions**.
-2. Po zmergowaniu do `main` workflow `.github/workflows/pages.yml` sam opublikuje folder `przypominajka/` (albo uruchom go ręcznie w zakładce Actions).
-3. Otwórz adres strony na telefonie:
+1. Repo → **Settings → Pages** → *Source: Deploy from a branch* → branch `claude/supplement-reminder-app-8m0ey4`, folder `/ (root)` → **Save**.
+2. Po 1–2 minutach apka jest pod adresem **https://terlikk.github.io/Projekt/przypominajka/**.
+3. Otwórz ten adres na telefonie:
    - **Android (Chrome):** menu ⋮ → *Zainstaluj aplikację* / *Dodaj do ekranu głównego*.
    - **iPhone (Safari, iOS 16.4+):** Udostępnij → *Do ekranu początkowego*, potem otwórz apkę z ikony i kliknij „Włącz” przy powiadomieniach.
 
