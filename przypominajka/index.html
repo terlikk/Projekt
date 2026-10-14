@@ -102,11 +102,15 @@
       <div class="row">
         <label class="field grow">
           <span>Cel dzienny</span>
-          <input name="goal" type="number" min="1" inputmode="numeric" placeholder="np. 8">
+          <input name="goal" type="number" min="0" step="any" inputmode="decimal" placeholder="np. 2,5">
+        </label>
+        <label class="field grow">
+          <span>Na kliknięcie</span>
+          <input name="step" type="number" min="0" step="any" inputmode="decimal" placeholder="np. 0,25">
         </label>
         <label class="field grow">
           <span>Jednostka</span>
-          <input name="unit" placeholder="np. szklanka">
+          <input name="unit" placeholder="np. L">
         </label>
       </div>
 

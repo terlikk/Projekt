@@ -15,15 +15,15 @@ function defaults() {
     reminders: [
       { id: uid(), name: 'Woda', emoji: '💧', color: '#38bdf8', enabled: true, mode: 'interval',
         interval: 60, start: '08:00', end: '22:00', times: ['09:00'], days: ALL_DAYS,
-        goal: 8, unit: 'szklanka', stopAtGoal: true, message: 'Pora na szklankę wody 💧' },
+        goal: 2.5, unit: 'L', step: 0.25, stopAtGoal: true, message: 'Pora na szklankę wody 💧' },
       { id: uid(), name: 'Kreatyna', emoji: '💪', color: '#a78bfa', enabled: true, mode: 'times',
         interval: 60, start: '08:00', end: '22:00', times: ['09:00'], days: ALL_DAYS,
-        goal: 1, unit: 'porcja', stopAtGoal: true, message: '5 g kreatyny, nie zapomnij!' },
+        goal: 1, unit: 'porcja', step: 1, stopAtGoal: true, message: '5 g kreatyny, nie zapomnij!' },
       { id: uid(), name: 'Witamina D', emoji: '☀️', color: '#fbbf24', enabled: true, mode: 'times',
         interval: 60, start: '08:00', end: '22:00', times: ['10:00'], days: ALL_DAYS,
-        goal: 1, unit: 'kapsułka', stopAtGoal: true, message: 'Witamina D do posiłku' },
+        goal: 1, unit: 'kapsułka', step: 1, stopAtGoal: true, message: 'Witamina D do posiłku' },
     ],
-    log: {},        // { 'YYYY-MM-DD': { [id]: count } }
+    log: {},        // { 'YYYY-MM-DD': { [id]: amount } }
     lastFired: {},  // { [id]: timestamp of last slot notified }
     snooze: {},     // { [id]: timestamp }
     sound: true,
@@ -35,14 +35,34 @@ let state = load();
 function load() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return Object.assign(defaults(), JSON.parse(raw));
+    if (raw) return migrate(Object.assign(defaults(), JSON.parse(raw)));
   } catch (e) { /* fall through to defaults */ }
   return defaults();
+}
+
+// v1 counted taps only; water defaulted to 8 glasses. Now each tap adds `step` units.
+function migrate(s) {
+  for (const r of s.reminders) {
+    if (r.step) continue;
+    r.step = 1;
+    if (r.unit === 'szklanka' && r.name === 'Woda') {
+      r.unit = 'L';
+      r.step = 0.25;
+      r.goal = 2.5;
+      for (const day of Object.values(s.log)) if (day[r.id]) day[r.id] = round(day[r.id] * 0.25);
+    }
+  }
+  return s;
 }
 
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage full or blocked */ }
 }
+
+// Function declarations (hoisted): migrate() runs during the initial load().
+function round(n) { return Math.round(n * 1000) / 1000; }
+function fmt(n) { return round(n).toLocaleString('pl-PL', { maximumFractionDigits: 3 }); }
+function stepOf(r) { return Number(r.step) > 0 ? Number(r.step) : 1; }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
@@ -198,16 +218,18 @@ function beep() {
 
 function find(id) { return state.reminders.find((r) => r.id === id); }
 
-function logDone(id, delta = 1) {
+// sign: +1 adds one step (e.g. 0,25 L), -1 undoes one.
+function logDone(id, sign = 1) {
   const r = find(id);
   if (!r) return;
   const key = dateKey();
   state.log[key] = state.log[key] || {};
-  state.log[key][id] = Math.max(0, (state.log[key][id] || 0) + delta);
+  const before = state.log[key][id] || 0;
+  state.log[key][id] = Math.max(0, round(before + sign * stepOf(r)));
   delete state.snooze[id];
   save();
   render();
-  if (delta > 0 && r.goal && state.log[key][id] === r.goal) toast(`🎉 Cel „${r.name}” osiągnięty!`);
+  if (sign > 0 && r.goal && before < r.goal && state.log[key][id] >= r.goal) toast(`🎉 Cel „${r.name}” osiągnięty!`);
 }
 
 function snooze(id) {
@@ -255,7 +277,8 @@ function render() {
     const count = countToday(r);
     const pctR = r.goal ? Math.min(100, count / r.goal * 100) : 0;
     const complete = r.goal && count >= r.goal;
-    const progress = r.goal ? `${count} / ${r.goal} ${esc(r.unit || '')}` : `${count}× dziś`;
+    const unit = esc(r.unit || '');
+    const progress = r.goal ? `${fmt(count)} / ${fmt(r.goal)} ${unit}` : (unit ? `${fmt(count)} ${unit} dziś` : `${fmt(count)}× dziś`);
     const next = r.enabled ? describeNext(nextSlot(r)) : 'wyłączone';
     const snoozed = state.snooze[r.id] ? ' · drzemka' : '';
     return `
@@ -267,7 +290,7 @@ function render() {
             <p>${progress}</p>
           </div>
           <button class="done-btn ${complete ? 'complete' : ''}" data-done="${r.id}" aria-label="Zrobione">
-            ${complete ? '✓' : '＋1'}
+            ${complete ? '✓' : `＋${fmt(stepOf(r))}`}
           </button>
         </div>
         ${r.goal ? `<div class="bar"><i style="width:${pctR}%"></i></div>` : ''}
@@ -302,7 +325,7 @@ function openEditor(r) {
     ? JSON.parse(JSON.stringify(r))
     : { id: uid(), name: '', emoji: '⏰', color: COLORS[state.reminders.length % COLORS.length], enabled: true,
         mode: 'times', interval: 60, start: '08:00', end: '22:00', times: ['09:00'], days: [...ALL_DAYS],
-        goal: 1, unit: '', stopAtGoal: true, message: '' };
+        goal: 1, unit: '', step: 1, stopAtGoal: true, message: '' };
   const isNew = !r;
 
   $('#edit-title').textContent = isNew ? 'Nowe przypomnienie' : 'Edytuj przypomnienie';
@@ -314,6 +337,7 @@ function openEditor(r) {
   form.elements.end.value = editing.end;
   form.elements.goal.value = editing.goal || '';
   form.elements.unit.value = editing.unit || '';
+  form.elements.step.value = stepOf(editing);
   form.elements.stopAtGoal.checked = !!editing.stopAtGoal;
   form.elements.message.value = editing.message || '';
   form.querySelector(`input[name=mode][value=${editing.mode}]`).checked = true;
@@ -386,7 +410,8 @@ form.addEventListener('submit', (e) => {
     interval: Math.max(5, Number(form.elements.interval.value) || 60),
     start: form.elements.start.value || '08:00',
     end: form.elements.end.value || '22:00',
-    goal: Number(form.elements.goal.value) || 0,
+    goal: Number(String(form.elements.goal.value).replace(',', '.')) || 0,
+    step: Number(String(form.elements.step.value).replace(',', '.')) || 1,
     unit: form.elements.unit.value.trim(),
     stopAtGoal: form.elements.stopAtGoal.checked,
     message: form.elements.message.value.trim(),

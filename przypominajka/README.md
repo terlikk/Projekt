@@ -6,7 +6,7 @@ Prosta apka (PWA) z przypomnieniami o wodzie, kreatynie, suplementach i czymkolw
 
 - Przypomnienia **co X minut** w przedziale godzin (np. woda co 60 min, 8:00–22:00) albo **o konkretnych godzinach** (np. kreatyna 9:00).
 - Wybór dni tygodnia, własna ikona (emoji), kolor, treść powiadomienia.
-- Cel dzienny z paskiem postępu (np. 8 szklanek). Opcjonalnie przypomnienia milkną po osiągnięciu celu.
+- Cel dzienny z paskiem postępu w dowolnej jednostce (np. woda 2,5 L, +0,25 L na kliknięcie; kreatyna 1 porcja). Opcjonalnie przypomnienia milkną po osiągnięciu celu.
 - Powiadomienia z przyciskami **✓ Zrobione** i **⏰ Za 10 min**.
 - Eksport do kalendarza (`.ics`), żeby przypomnienia przychodziły też przy zamkniętej apce.
 - Kopia zapasowa ustawień (eksport/import JSON). Wszystkie dane zostają w telefonie (localStorage), nie ma serwera.
